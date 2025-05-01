@@ -1,0 +1,88 @@
+version: '3.9'
+
+services:
+  mongodb_waze:
+    image: mongo
+    container_name: mongodb_waze
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  scraper:
+    build: ./scraper
+    container_name: scraper_waze
+    depends_on:
+      - mongodb_waze
+
+  cargador:
+    build: ./cargador
+    container_name: cargador_waze
+    depends_on:
+      - mongodb_waze
+    restart: on-failure
+
+  generador:
+    build: ./generador
+    container_name: generador_waze
+    depends_on:
+      - mongodb_waze
+      - cache_fifo  # cambiar a ache_lru si se prueba esa política
+    environment:
+      - CACHE_URL=http://cache_fifo:5000
+
+
+
+
+  redis_fifo:
+    image: redis:latest
+    container_name: redis_fifo
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--maxmemory", "50mb", "--maxmemory-policy", "allkeys-random"]
+
+  redis_lru:
+    image: redis:latest
+    container_name: redis_lru
+    ports:
+      - "6380:6379"
+    command: ["redis-server", "--maxmemory", "50mb", "--maxmemory-policy", "allkeys-lru"]
+
+  redisinsight_ui:
+    image: redis/redisinsight:latest
+    container_name: redisinsight_ui
+    ports:
+      - "8001:8001"
+    depends_on:
+      - redis_fifo
+      - redis_lru
+  
+  cache_fifo:
+    build: ./cache
+    container_name: cache_fifo
+    ports:
+      - "5000:5000"
+    environment:
+      - REDIS_URL=redis_fifo
+    depends_on:
+      - redis_fifo
+    restart: on-failure
+
+  cache_lru:
+    build: ./cache
+    container_name: cache_lru
+    ports:
+      - "5001:5000"
+    environment:
+      - REDIS_URL=redis_lru
+    depends_on:
+      - redis_lru
+    restart: on-failure
+  
+volumes:
+  mongo_data:
+
+networks:
+  default:
+    name: tarea1_net
+
