@@ -47,8 +47,3 @@ CMD ["python", "generador_trafico.py", "poisson"]
 ```
 
 
----
-
-## 📫 Contacto
-
-Para dudas, sugerencias o mejoras, contacta a [Tu Nombre o Usuario].
