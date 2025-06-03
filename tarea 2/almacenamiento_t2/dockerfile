@@ -1,0 +1,7 @@
+FROM python:3.12-slim
+WORKDIR /app
+COPY copiar_a_mongo2.py .
+COPY eventos_wazeT2.json .
+RUN pip install pymongo
+CMD ["python", "copiar_a_mongo2.py"]
+
