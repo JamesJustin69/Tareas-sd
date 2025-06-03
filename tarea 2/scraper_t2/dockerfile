@@ -1,0 +1,5 @@
+FROM python:3.12-slim
+WORKDIR /app
+COPY scraperT2.py .
+RUN pip install requests
+CMD [ "python", "scraperT2.py" ]
