@@ -1,19 +1,15 @@
-# processing/exportar_a_csv.py
 from pymongo import MongoClient
 from geopy.geocoders import Nominatim
 import csv
 import os
 import time
 
-# Conexión a MongoDB
 cliente = MongoClient('mongodb://mongodb_wazeT2:27017/')
 db = cliente['trafico_waze']
 coleccion = db['eventos_agrupados']
 
-# Inicializar geolocalizador
 geolocator = Nominatim(user_agent="geoapi")
 
-# Función para obtener comuna desde coordenadas
 def obtener_comuna(lat, lon):
     try:
         location = geolocator.reverse(f"{lat}, {lon}", language='es')
@@ -23,7 +19,6 @@ def obtener_comuna(lat, lon):
     except:
         return "desconocido"
 
-# Directorio compartido
 os.makedirs("/scripts", exist_ok=True)
 
 with open('/scripts/eventos_agrupados.csv', mode='w', newline='', encoding='utf-8') as archivo_csv:
@@ -38,7 +33,7 @@ with open('/scripts/eventos_agrupados.csv', mode='w', newline='', encoding='utf-
             comuna = "desconocido"
         else:
             comuna = obtener_comuna(lat, lon)
-            time.sleep(1)  # evitar bloqueo por muchas consultas
+            time.sleep(1)
 
         writer.writerow([
             evento.get('fusion_id', ''),
@@ -48,4 +43,4 @@ with open('/scripts/eventos_agrupados.csv', mode='w', newline='', encoding='utf-
             evento.get('pub_time', '')
         ])
 
-print("✅ Exportación completada con comunas: /scripts/eventos_agrupados.csv")
+print("Exportación completada con las comunas: /scripts/eventos_agrupados.csv")
