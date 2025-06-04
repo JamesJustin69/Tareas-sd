@@ -3,27 +3,19 @@ import re
 from datetime import datetime
 from statistics import mean
 
-# Conexión a MongoDB
 cliente = MongoClient('mongodb://mongodb_wazeT2:27017/')
 db = cliente['trafico_waze']
 coleccion_origen = db['eventos']
 coleccion_filtrada = db['eventos_filtrados']
 coleccion_agrupada = db['eventos_agrupados']
 
-# Limpieza previa
 coleccion_filtrada.delete_many({})
 coleccion_agrupada.delete_many({})
 
-# Para evitar duplicados por ID
 ids_vistos = set()
-
-# Contadores
 insertados = 0
 descartados = 0
 
-# --------------------------
-# 1. FILTRADO Y NORMALIZACIÓN
-# --------------------------
 for evento in coleccion_origen.find():
     if not all([
         evento.get("id"),
@@ -40,7 +32,6 @@ for evento in coleccion_origen.find():
 
     ids_vistos.add(evento["id"])
 
-    # Normalización
     evento["type"] = evento["type"].strip().lower()
 
     if "city" in evento and evento["city"]:
@@ -56,17 +47,13 @@ print(f"Limpieza completada.")
 print(f"Insertados en eventos_filtrados: {insertados}")
 print(f"Descartados: {descartados}")
 
-# -----------------------------------------
-# 2. AGRUPACIÓN POR CERCANÍA TEMPORAL Y CITY
-# -----------------------------------------
-print("Iniciando agrupación...")
+print("iniciando agrupación...")
 
 AGRUPACION_MINUTOS = 30
 AGRUPACION_MS = AGRUPACION_MINUTOS * 60 * 1000
 
 eventos = list(coleccion_filtrada.find())
 
-# ✅ Conversión correcta de pub_time tipo string a timestamp en ms
 def pub_time_to_ms(pub_time_str):
     try:
         dt = datetime.strptime(pub_time_str, "%Y-%m-%dT%H:%M:%S")
@@ -102,9 +89,6 @@ for evento in eventos:
 if grupo_actual:
     grupos.append(grupo_actual)
 
-# -----------------------------------------
-# 3. FUSIÓN DENTRO DE LOS GRUPOS AGRUPADOS
-# -----------------------------------------
 def misma_fecha(ts1, ts2):
     return datetime.fromtimestamp(ts1 / 1000).date() == datetime.fromtimestamp(ts2 / 1000).date()
 
@@ -160,7 +144,6 @@ for grupo in grupos:
             "ids_originales": [e.get("id") for e in fusion_actual]
         })
 
-# Guardar eventos fusionados
 coleccion_agrupada.delete_many({})
 for fusion in fusionados_finales:
     coleccion_agrupada.insert_one(fusion)
