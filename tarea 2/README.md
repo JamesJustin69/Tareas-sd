@@ -14,7 +14,12 @@ docker-compose up --build
 
 Esto construye y ejecuta los servicios, los cuales son el scraper, data storage, filtering y el processing.
 
-## 🗃️ Estructura de directorios
+## OJO
+
+Al momento de crear al archivo eventos_agrupados.csv, se tiene una gran demora por lo que se pide que se deje terminar este proceso, el cual son
+2527 datos con sus comunas ya realizadas.
+
+## 🗃 Estructura de directorios
 
 ```
 .
