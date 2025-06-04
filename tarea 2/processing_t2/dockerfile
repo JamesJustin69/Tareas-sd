@@ -1,0 +1,5 @@
+FROM python:3.12-slim
+WORKDIR /app
+COPY exportar_a_csv.py .
+RUN pip install pymongo geopy
+CMD ["python", "exportar_a_csv.py"]
