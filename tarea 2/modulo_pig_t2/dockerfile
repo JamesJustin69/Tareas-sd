@@ -2,29 +2,22 @@ FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Instalar dependencias: Java y wget
 RUN apt-get update && \
     apt-get install -y openjdk-11-jdk wget unzip && \
     apt-get clean
 
-# 🔧 Añadir JAVA_HOME
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 
-# Descargar y descomprimir Apache Pig
 RUN wget https://downloads.apache.org/pig/pig-0.17.0/pig-0.17.0.tar.gz && \
     tar -xzf pig-0.17.0.tar.gz && \
     mv pig-0.17.0 /opt/pig && \
     rm pig-0.17.0.tar.gz
 
-# Añadir PIG_HOME y PATH
 ENV PIG_HOME=/opt/pig
 ENV PATH=$PATH:$PIG_HOME/bin
 
-# Crear carpeta scripts y copiar el contenido
 WORKDIR /scripts
 COPY procesamiento.pig /scripts/
 ## ta malo ->COPY eventos_agrupados.csv /scripts/
 
-
-# Ejecutar el script de Pig
 CMD ["pig", "-x", "local", "procesamiento.pig"]
