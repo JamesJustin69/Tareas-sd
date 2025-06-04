@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  mongodb_wazeT2:
+    image: mongo
+    container_name: mongodb_wazeT2
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  scraper:
+    build:
+      context: ./scraper_t2
+      dockerfile: dockerfile
+    container_name: scraper_waze2
+    depends_on:
+      - mongodb_wazeT2
+    networks:
+      - default
+
+  copiador:
+    build:
+      context: ./almacenamiento_t2
+      dockerfile: dockerfile
+    container_name: copiador_a_mongo2
+    depends_on:
+      - mongodb_wazeT2
+    networks:
+      - default
+
+  filtrador:
+    build:
+      context: ./filtrado_t2
+      dockerfile: dockerfile
+    container_name: filtrador_waze2
+    depends_on:
+      copiador:
+        condition: service_completed_successfully
+    restart: "no"
+    networks:
+      - default
+
+  procesador:
+    build:
+      context: ./processing_t2
+    container_name: procesador_csv2
+    depends_on:
+      filtrador:
+        condition: service_completed_successfully
+    volumes:
+      - ./modulo_pig_t2:/scripts
+    networks:
+      - default
+
+  pig_processor:
+    build:
+      context: ./modulo_pig_t2
+    container_name: pig_processor
+    depends_on:
+      procesador:
+        condition: service_completed_successfully
+    volumes:
+      - ./modulo_pig_t2:/scripts
+    working_dir: /scripts
+    networks:
+      - default
+
+volumes:
+  mongo_data:
+
+networks:
+  default:
+    name: tarea2_sistdist
